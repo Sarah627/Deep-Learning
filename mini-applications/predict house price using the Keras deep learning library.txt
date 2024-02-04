@@ -1,0 +1,55 @@
+import numpy as np
+import pandas as pd
+#matplot for visualization
+import matplotlib.pyplot as plt
+%matplotlib inline 
+#applying the deep learning using neural networks from keras library
+from keras import models 
+from keras.models import Sequential
+from keras import layers 
+from keras.layers import Dense
+import tensorflow as tf 
+#loading the dataset
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.boston_housing.load_data(path="boston_housing.npz", test_split=0.2, seed=113) 
+
+print(x_train.shape,x_test.shape, y_train.shape, y_test.shape)
+
+#data preparation - feature normalization
+mean = x_train.mean(axis=0)
+x_train -= mean
+std = x_train.std(axis=0)
+x_train /= std
+x_test -= mean
+x_test /= std
+
+#building the model : 2 hidden leayer with 64 neurons and one output layer with one neuron
+def build_model():
+    model = models.Sequential()
+    model.add(layers.Dense(64, activation='relu', input_shape=(x_train.shape[1],)))
+    model.add(layers.Dense(64, activation='relu'))
+    model.add(layers.Dense(1))
+    # using mean square error function as loss function, and mean absolute error as our metric
+    model.compile(optimizer='rmsprop',
+              loss='mse',
+              metrics=['mae'])
+    return model
+
+model = build_model()
+
+history = model.fit(x_train, 
+                    y_train, 
+                    batch_size=16, 
+                    epochs=80, 
+                    verbose = 0)
+test_mse_score, test_mae_score = model.evaluate(x_test, y_test)
+
+test_mae_score
+
+#visualizing the training loss
+plt.plot(history.history['loss'])
+plt.plot(history.history['mae'])
+plt.title('Model loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Val'], loc='upper right')
+plt.show()
